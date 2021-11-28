@@ -14,8 +14,7 @@ jobs:
   run_shellcheck_linter:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: aljandor/shellcheck-docker:latest
       - name: Run Shellcheck linter
-        uses: aljandor/shellcheck-docker:latest
         with:
           cli-args: "-e SC2034 -e SC1090 --color=always ./scripts"
