@@ -14,6 +14,8 @@ jobs:
   run_shellcheck_linter:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
+
       - name: Run Shellcheck linter
         uses: docker://aljandor/shellcheck-docker:latest
         with:
