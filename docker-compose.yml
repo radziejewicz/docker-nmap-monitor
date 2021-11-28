@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  nmap_monitor:
+    build: .
+    user: "${UID:-0}:${GID:-0}"    
+    env_file:
+    - .env
+
+#todo volumes logs    

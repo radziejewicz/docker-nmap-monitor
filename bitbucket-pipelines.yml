@@ -1,0 +1,14 @@
+image: atlassian/default-image:2
+
+options:
+  max-time: 1
+
+pipelines:
+  branches:
+    master:    
+      - step:        
+          name: Run Shellcheck linter
+          image: aljandor/shellcheck-docker:latest
+          script:
+            - shellcheck --version
+            - find ./scripts -type f -name "*.sh" | sort -u | xargs shellcheck -e SC2034 -e SC1090 --color=always
