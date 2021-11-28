@@ -7,4 +7,4 @@ services:
     env_file:
     - .env
 
-#todo volumes logs    
+#todo: volumes logs, fix ndiff issue

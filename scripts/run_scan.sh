@@ -1,16 +1,18 @@
 #!/bin/bash -u
 
 if [ -f .env ]; then
+    # shellcheck source=/dev/null
     source .env
 fi
 
-: ${TARGETS:=''}
-: ${HEALTHCHECK_WEBHOOK:=''}
-: ${OPTIONS:=''}
-: ${CHECK_INTERVAL:=3600}
-: ${SLACK_USERNAME:="nmap-monitor"}
-: ${SLACK_ICON:=":warning:"}
-: ${SLACK_WEBHOOK:=''}
+: "${TARGETS:=""}"
+: "${HEALTHCHECK_WEBHOOK:=""}"
+: "${NMAP_OPTIONS:="--open"}"
+: "${CHECK_INTERVAL:=3600}"
+: "${SLACK_USERNAME:="Nmap Monitor"}"
+: "${SLACK_ICON:=":warning:"}"
+: "${SLACK_WEBHOOK:=""}"
+
 
 if [ "${TARGETS:-}" == "" ]; then
     echo "TARGETS not set!"
@@ -26,6 +28,7 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 LOG_DIR=logs
 LOG_TARGET_DIR="${SCRIPT_DIR}/../${LOG_DIR}"
 LAST_RUN_FILE="${SCRIPT_DIR}/../${LOG_DIR}/last_run.log"
+LOG_OPEN_PORTS_FILE="${SCRIPT_DIR}/../${LOG_DIR}/openports.log"
 
 
 function sendMessageToSlack {
@@ -45,7 +48,7 @@ function showLog {
 
 while true; do
     if [ -e "${LAST_RUN_FILE}" ]; then
-        LAST_RUN=$(date -r ${LAST_RUN_FILE} +"%Y-%m-%d %H:%M:%S") 
+        LAST_RUN=$(date -r "${LAST_RUN_FILE}" +"%Y-%m-%d %H:%M:%S") 
         showLog "Script last run: $LAST_RUN"  
     fi
 
@@ -59,31 +62,38 @@ while true; do
         PREV_LOG_FILE="${LOG_TARGET_DIR}/${TARGET/\//-}.prev.xml"
         DIFF_LOG_FILE="${LOG_TARGET_DIR}/${TARGET/\//-}.diff.xml"
 
-        nmap ${OPTIONS} ${TARGET} -oX ${CUR_LOG_FILE} >/dev/null
-        if [ -e ${PREV_LOG_FILE} ]; then
+        nmap ${NMAP_OPTIONS} ${TARGET} -oX "${CUR_LOG_FILE}" >/dev/null
+        
+        if [ -e "${PREV_LOG_FILE}" ]; then
             # Exclude date and nmap version
-            ndiff "${PREV_LOG_FILE}" "${CUR_LOG_FILE}" | egrep -v '^(\+|-)N' > "${DIFF_LOG_FILE}"
+            ndiff "${PREV_LOG_FILE}" "${CUR_LOG_FILE}" | grep -E -v '^(\+|-)N' > "${DIFF_LOG_FILE}"
 
-            if [ -s ${DIFF_LOG_FILE} ]; then                
-                OPEN_PORTS="$(nmap -sV ${TARGET} | grep open | grep -v "#" > openports.txt)"                
-                showLog "Changes were detected on ${TARGET}. Ports are now open: \n```$OPEN_PORTS```"
-                sendMessageToSlack "Changes were detected on ${TARGET}. The following ports are now open: \n```$OPEN_PORTS```"
+            if [ -s "${DIFF_LOG_FILE}" ]; then                
+                # Todo separate openports.log per host
+                OPEN_PORTS="$(nmap -sV ${TARGET} | grep open | grep -v "#" > "${LOG_OPEN_PORTS_FILE}")"
+
+                if [ -n "$OPEN_PORTS" ]; then
+                    showLog "Changes were detected on ${TARGET}. Ports are now open: \n``$($OPEN_PORTS)``"
+                    sendMessageToSlack "Changes were detected on ${TARGET}. The following ports are now open: \n``$($OPEN_PORTS)``"
+                else
+                    rm "${CUR_LOG_FILE}"
+                fi
               
-                ln -sf ${CUR_LOG_FILE} ${PREV_LOG_FILE}
+                ln -sf "${CUR_LOG_FILE}" "${PREV_LOG_FILE}"
             else
                 # No changes - remove current log
                 showLog "No changes detected."
-                rm ${CUR_LOG_FILE}
+                rm "${CUR_LOG_FILE}"
             fi
-            rm -f ${DIFF_LOG_FILE}
+            rm -f "${DIFF_LOG_FILE}"
         else            
-            ln -sf ${CUR_LOG_FILE} ${PREV_LOG_FILE}
+            ln -sf "${CUR_LOG_FILE}" "${PREV_LOG_FILE}"
         fi
     done
 
-    touch ${LAST_RUN_FILE}
+    touch "${LAST_RUN_FILE}"
     END_TIME=$(date +%s)
-    FINAL_TIME=$(expr ${END_TIME} - ${START_TIME})
+    FINAL_TIME=$((END_TIME - START_TIME))
     showLog "Done all targets in ${FINAL_TIME} seconds."
     pingHealthCheck
     sleep ${CHECK_INTERVAL}
