@@ -1,0 +1,21 @@
+name: Run Shellcheck linter
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
+
+jobs:
+  run_shellcheck_linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Shellcheck linter
+        uses: aljandor/shellcheck-docker:latest
+        with:
+          cli-args: "-e SC2034 -e SC1090 --color=always ./scripts"
