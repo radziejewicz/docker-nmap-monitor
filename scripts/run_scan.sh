@@ -24,6 +24,7 @@ if [ "${SLACK_WEBHOOK:-}" == "" ]; then
     exit
 fi
 
+
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 LOG_DIR=logs
 LOG_TARGET_DIR="${SCRIPT_DIR}/../${LOG_DIR}"
@@ -32,7 +33,7 @@ LOG_OPEN_PORTS_FILE="${SCRIPT_DIR}/../${LOG_DIR}/openports.log"
 
 
 function sendMessageToSlack {
-    curl -s -X POST --data-urlencode "payload={\"username\": \"$SLACK_USERNAME\", \"icon_emoji\": \"$SLACK_ICON\", \"text\": \"$1\"}" $SLACK_WEBHOOK > /dev/null &
+    curl -s -d -X POST --data-urlencode "payload={\"username\": \"$SLACK_USERNAME\", \"icon_emoji\": \"$SLACK_ICON\", \"text\": \"$1\"}" $SLACK_WEBHOOK > /dev/null &
 }
 
 function pingHealthCheck {

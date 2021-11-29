@@ -1,9 +1,11 @@
-FROM alpine:3.15.0
+FROM debian:buster-slim
 
 ENV LOG_DIR=logs
 
-RUN apk add --update-cache bash python3 nmap curl \
-    && rm -rf /var/cache/apk/*    
+RUN apt-get update && apt-get install -y --no-install-recommends \
+	bash python nmap ndiff curl ca-certificates \
+    && apt-get purge -y \
+	&& rm -rf /var/lib/apt/lists/* 
 
 WORKDIR /nmap
 RUN mkdir scripts $LOG_DIR
