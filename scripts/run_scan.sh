@@ -33,7 +33,7 @@ LOG_OPEN_PORTS_FILE="${SCRIPT_DIR}/../${LOG_DIR}/openports.log"
 
 
 function sendMessageToSlack {
-    curl -s -d -X POST --data-urlencode "payload={\"username\": \"$SLACK_USERNAME\", \"icon_emoji\": \"$SLACK_ICON\", \"text\": \"$1\"}" $SLACK_WEBHOOK > /dev/null &
+    curl -s -X POST --data-urlencode "payload={\"username\": \"$SLACK_USERNAME\", \"icon_emoji\": \"$SLACK_ICON\", \"text\": \"$1\"}" $SLACK_WEBHOOK > /dev/null &
 }
 
 function pingHealthCheck {
