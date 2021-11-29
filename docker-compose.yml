@@ -3,8 +3,10 @@ version: '3.4'
 services:
   nmap_monitor:
     build: .
+    restart: always
     user: "${UID:-0}:${GID:-0}"    
     env_file:
-    - .env
-
-#todo: volumes logs, fix ndiff issue
+     - .env
+    volumes:
+      - "./scripts:/nmap/scripts/"
+      - "./logs:/nmap/logs/"
