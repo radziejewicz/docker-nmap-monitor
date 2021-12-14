@@ -68,12 +68,10 @@ while true; do
         if [ -e "${PREV_LOG_FILE}" ]; then
             # Exclude date and nmap version
             ndiff "${PREV_LOG_FILE}" "${CUR_LOG_FILE}" | grep -E -v '^(\+|-)Nmap' | grep -E -v '^(\+|-)Not shown'> "${DIFF_LOG_FILE}"
-
-            if [ -s "${DIFF_LOG_FILE}" ]; then                
-                # Todo separate openports.log per host and status
-                # OPEN_PORTS="$(nmap -sV ${TARGET} | grep open | grep -v "#" > "${LOG_OPEN_PORTS_FILE}")"
-                
-                OPEN_PORTS_LOG=$(cat "${DIFF_LOG_FILE}")
+            OPEN_PORTS_LOG=$(cat "${DIFF_LOG_FILE}")
+            
+            if [ -s "${DIFF_LOG_FILE}" ] && [ -n "${OPEN_PORTS_LOG}" ]; then      
+                echo "${OPEN_PORTS_LOG}" >> "${LOG_OPEN_PORTS_FILE}"                
                 showLog "Changes were detected on ${TARGET}. The following ports have changed: \n${OPEN_PORTS_LOG}"
                 sendMessageToSlack "Changes were detected on ${TARGET}. The following ports have changed: \n${OPEN_PORTS_LOG}"
               
