@@ -33,7 +33,7 @@ LOG_OPEN_PORTS_FILE="${SCRIPT_DIR}/../${LOG_DIR}/openports.log"
 
 
 function sendMessageToSlack {
-    curl -s  -X POST --data-urlencode "payload={\"username\": \"$SLACK_USERNAME\", \"icon_emoji\": \"$SLACK_ICON\", \"text\": \"$1\"}" $SLACK_WEBHOOK > /dev/null &
+    curl -s -X POST --data-urlencode "payload={\"username\": \"$SLACK_USERNAME\", \"icon_emoji\": \"$SLACK_ICON\", \"text\": \"$1\"}" $SLACK_WEBHOOK > /dev/null &
 }
 
 function pingHealthCheck {
@@ -68,7 +68,7 @@ while true; do
         if [ -e "${PREV_LOG_FILE}" ]; then
             # Exclude date and nmap version
             ndiff "${PREV_LOG_FILE}" "${CUR_LOG_FILE}" | grep -E -v '^(\+|-)Nmap' | grep -E -v '^(\+|-)Not shown'> "${DIFF_LOG_FILE}"
-            OPEN_PORTS_LOG=$(cat "${DIFF_LOG_FILE}")            
+            OPEN_PORTS_LOG=$(cat "${DIFF_LOG_FILE}")
             
             if [ -s "${DIFF_LOG_FILE}" ] && [ -n "${OPEN_PORTS_LOG}" ] && [[ "${OPEN_PORTS_LOG}" =~ "open" ]]; then      
                 echo "${OPEN_PORTS_LOG}" >> "${LOG_OPEN_PORTS_FILE}"                
