@@ -63,14 +63,14 @@ while true; do
         PREV_LOG_FILE="${LOG_TARGET_DIR}/${TARGET/\//-}.prev.xml"
         DIFF_LOG_FILE="${LOG_TARGET_DIR}/${TARGET/\//-}.diff.xml"
 
-        nmap ${NMAP_OPTIONS} ${TARGET} -oX "${CUR_LOG_FILE}" >/dev/null
+        nmap ${NMAP_OPTIONS} ${TARGET} -oX "${CUR_LOG_FILE}" > /dev/null
         
         if [ -e "${PREV_LOG_FILE}" ]; then
             # Exclude date and nmap version
             ndiff "${PREV_LOG_FILE}" "${CUR_LOG_FILE}" | grep -E -v '^(\+|-)Nmap' | grep -E -v '^(\+|-)Not shown'> "${DIFF_LOG_FILE}"
             OPEN_PORTS_LOG=$(cat "${DIFF_LOG_FILE}")
             
-            if [ -s "${DIFF_LOG_FILE}" ] && [ -n "${OPEN_PORTS_LOG}" ]; then      
+            if [ -s "${DIFF_LOG_FILE}" ] && [ -n "${OPEN_PORTS_LOG}" ] && [[ "${OPEN_PORTS_LOG}" =~ "open" ]]; then      
                 echo "${OPEN_PORTS_LOG}" >> "${LOG_OPEN_PORTS_FILE}"                
                 showLog "Changes were detected on ${TARGET}. The following ports have changed: \n${OPEN_PORTS_LOG}"
                 sendMessageToSlack "Changes were detected on ${TARGET}. The following ports have changed: \n${OPEN_PORTS_LOG}"
